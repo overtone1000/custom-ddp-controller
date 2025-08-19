@@ -1,8 +1,9 @@
 [package]
-name = "custom-sacn-controller"
+name = "custom-ddp-controller"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 ddp-rs = "1"
-prisma = "0.1"
+prisma = "0"
+angular-units = "0"
