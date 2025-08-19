@@ -75,7 +75,9 @@ pub fn rainbow_oscillation(
     // this crate is non blocking, so with out the sleep, it will send them all instantly
 
     let start = std::time::SystemTime::now();
-    let rotation_frequency: f64 = 1.0; //Hz
+
+    let rotation_period: u128 = 10 * 1000; //milliseconds per rotation
+    let rotation_period_f64 = f64::from(rotation_period as u32);
 
     let pixel_count_f64 = f64::from(pixels.count() as u32);
 
@@ -84,7 +86,9 @@ pub fn rainbow_oscillation(
 
         match time {
             Ok(elapsed) => {
-                let rotational_offset_from_time = elapsed.as_secs_f64() * rotation_frequency;
+                //Do this to handle long periods of time gracefully
+                let rotational_offset_from_time =
+                    f64::from((elapsed.as_millis() % rotation_period) as u32) / rotation_period_f64;
 
                 for a in 0..pixels.count() {
                     let rotational_offset_from_location = f64::from(a as u32) / pixel_count_f64;
