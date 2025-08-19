@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 ddp-rs = "1"
+prisma = "0.1"

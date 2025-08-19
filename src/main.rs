@@ -1,14 +1,18 @@
-use std::{
-    error::Error,
-    net::{IpAddr, SocketAddr},
-    thread::sleep,
-    time::Duration,
-};
+use std::error::Error;
 
+use custom_sacn_controller::{write_pixels, PixelRgb};
 use ddp_rs::{connection, protocol};
+
+const LED_COUNT: usize = 450; //There are 450 LEDs. This was confirmed.
 
 fn main() -> Result<(), Box<dyn Error>> {
     println!("Starting.");
+
+    let mut pixels: [PixelRgb; LED_COUNT] = [PixelRgb {
+        red: 0,
+        green: 0,
+        blue: 0,
+    }; LED_COUNT];
 
     let mut conn = connection::DDPConnection::try_new(
         "10.10.30.17:4048",               // The IP address of the device followed by :4048
@@ -17,37 +21,45 @@ fn main() -> Result<(), Box<dyn Error>> {
         std::net::UdpSocket::bind("0.0.0.0:6969").unwrap(), // can be any unused port on 0.0.0.0, but protocol recommends 4048
     )?;
 
-    // loop sets some colors for the first 6 pixels to see if it works
-    for i in 0u8..100u8 {
-        let high = 10u8.overflowing_mul(i).0;
+    write_pixels(&mut conn, &pixels)?;
 
-        // loop through some colors
+    std::thread::sleep(std::time::Duration::from_millis(2000));
+    // this crate is non blocking, so with out the sleep, it will send them all instantly
 
-        let temp: usize = conn.write(&[
-            high, /*red value*/
-            0,    /*green value*/
-            0,    /*blue value*/
-            high, /*red value*/
-            0,    /*green value*/
-            0,    /*blue value*/
-            0,    /*red value*/
-            high, /*green value*/
-            0,    /*blue value*/
-            0,    /*red value*/
-            high, /*green value*/
-            0,    /*blue value*/
-            0,    /*red value*/
-            0,    /*green value*/
-            high, /*blue value*/
-            0,    /*red value*/
-            0,    /*green value*/
-            high, /*blue value*/
-        ])?;
+    for i in 0..LED_COUNT {
+        for a in 0..i {
+            pixels[a].red = u8::MAX;
+            pixels[a].green = 0;
+            pixels[a].blue = 0;
+        }
+        for a in i..LED_COUNT {
+            pixels[a].red = 0;
+            pixels[a].green = 0;
+            pixels[a].blue = u8::MAX;
+        }
+
+        write_pixels(&mut conn, &pixels)?;
 
         std::thread::sleep(std::time::Duration::from_millis(10));
         // this crate is non blocking, so with out the sleep, it will send them all instantly
+    }
 
-        println!("sent {temp} packets");
+    for i in 0..LED_COUNT {
+        for a in 0..i {
+            pixels[a].red = 0;
+            pixels[a].green = u8::MAX;
+            pixels[a].blue = 0;
+        }
+        for a in i..LED_COUNT {
+            pixels[a].red = u8::MAX;
+            pixels[a].green = 0;
+            pixels[a].blue = 0;
+        }
+
+        write_pixels(&mut conn, &pixels)?;
+
+        std::thread::sleep(std::time::Duration::from_millis(10));
+        // this crate is non blocking, so with out the sleep, it will send them all instantly
     }
 
     println!("Finished.");
