@@ -4,6 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+
 ddp-rs = "1"
 prisma = "0"
 angular-units = "0"
+
+tokio = { version = "1", features = ["full"] }
+hyper = { version = "1", features = ["full"] }
+#hyper-services = { path = "../../trm-rust-libs/hyper-services" }
+hyper-services = { git = "https://github.com/overtone1000/trm-rust-libs" } #use git for allow building remotely

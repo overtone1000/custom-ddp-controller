@@ -3,6 +3,7 @@ use prisma::{FromColor, Rgb};
 
 use super::pixel::{PixelSource, HSV};
 
+#[derive(Clone)]
 pub struct PixelStrip {
     raw_bytes: Vec<u8>,
     pixel_colors: Vec<HSV>,
