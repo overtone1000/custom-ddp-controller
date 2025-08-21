@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 
 use custom_ddp_controller::{
     displays::demos,
-    pixels::pixelstrip::PixelStrip,
+    pixels::{pixelstrip::PixelStrip, pixelstripmanager::PixelStripManager},
     services::LedCommandHandler,
 };
 use ddp_rs::{
@@ -38,7 +38,7 @@ async fn main() {
         }
     };
 
-    let pixels = PixelStrip::create(LED_COUNT);
+    let pixel_strip = PixelStrip::create(LED_COUNT);
 
     let outbound_port = std::net::UdpSocket::bind("0.0.0.0:6969"); // can be any unused port on 0.0.0.0, but protocol recommends 4048
 
@@ -70,13 +70,15 @@ async fn main() {
         }
     };
 
+    let pixel_strip_manager = PixelStripManager::new(pixel_strip, conn);
+
     //demos::red_green_blue(conn, pixels)?;
     //demos::hue_progression(conn, pixels)?;
-    demos::rainbow_oscillation(conn, pixels).unwrap();
+    //demos::rainbow_oscillation(conn, pixel_strip).unwrap();
 
     println!("Starting DDP Service");
 
-    let handler = LedCommandHandler::new();
+    let handler = LedCommandHandler::new(pixel_strip_manager);
 
     let event_server = spawn_server(
         IpAddr::V4(Ipv4Addr::LOCALHOST),

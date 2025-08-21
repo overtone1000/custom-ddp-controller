@@ -14,15 +14,15 @@ pub struct LedCommandHandler {
     pixel_strip_manager: PixelStripManager,
 }
 
-impl LedCommandHandler {
-    pub fn new() -> LedCommandHandler {
+impl  LedCommandHandler {
+    pub fn new(pixel_strip_manager:PixelStripManager) -> LedCommandHandler {
         LedCommandHandler {
-            pixel_strip_manager: PixelStripManager::new(),
+            pixel_strip_manager,
         }
     }
 }
 
-impl StatefulHandler for LedCommandHandler {
+impl  StatefulHandler for LedCommandHandler {
     async fn handle_request(self: Self, request: Request<Incoming>) -> HandlerResult {
         let method = request.method().clone();
         let path = request.uri().path().to_string();
