@@ -3,7 +3,7 @@ use std::{collections::BTreeMap, net::SocketAddr, ops::Index, process::ExitStatu
 use hyper::{body::Incoming, Request, Response};
 use hyper_services::{
     commons::{HandlerError, HandlerResult},
-    response_building::full_to_boxed_body,
+    response_building::{bad_request, full_to_boxed_body},
     service::{stateful_service::StatefulHandler, stateless_service::StatelessHandler},
 };
 use tokio::process::Command;
@@ -27,6 +27,9 @@ impl StatefulHandler for LedCommandHandler {
     async fn handle_request(self: Self, request: Request<Incoming>) -> HandlerResult {
         let method = request.method().clone();
         let path = request.uri().path().to_string();
+
+        //return Ok(not_found);
+        //return Ok(bad_request);
 
         return Ok(Response::new(full_to_boxed_body("Ok")));
     }
