@@ -1,24 +1,23 @@
-use std::{collections::BTreeMap, net::SocketAddr, ops::Index, process::ExitStatus};
+use std::{collections::BTreeMap, net::SocketAddr};
 
 use hyper::{body::Incoming, Request, Response};
 use hyper_services::{
-    commons::{HandlerError, HandlerResult},
-    response_building::{bad_request, full_to_boxed_body},
-    service::{stateful_service::StatefulHandler, stateless_service::StatelessHandler},
+    commons::{HandlerResult},
+    response_building::{full_to_boxed_body},
+    service::{stateful_service::StatefulHandler},
 };
-use tokio::process::Command;
 
-use crate::pixels::pixelstrip::PixelStrip;
+use crate::pixels::{pixelstrip::PixelStrip, pixelstripmanager::PixelStripManager};
 
 #[derive(Clone)]
 pub struct LedCommandHandler {
-    pixel_strips: BTreeMap<SocketAddr, PixelStrip>,
+    pixel_strip_manager: PixelStripManager,
 }
 
 impl LedCommandHandler {
     pub fn new() -> LedCommandHandler {
         LedCommandHandler {
-            pixel_strips: BTreeMap::new(),
+            pixel_strip_manager: PixelStripManager::new(),
         }
     }
 }

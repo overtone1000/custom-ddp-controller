@@ -1,13 +1,12 @@
-use std::{error::Error, net::SocketAddr};
+use std::net::SocketAddr;
 
-use angular_units::Deg;
 use custom_ddp_controller::{
     displays::demos,
-    pixels::{pixel::HSV, pixelstrip::PixelStrip},
+    pixels::pixelstrip::PixelStrip,
     services::LedCommandHandler,
 };
 use ddp_rs::{
-    connection::{self, DDPConnection},
+    connection::DDPConnection,
     protocol,
 };
 
@@ -75,7 +74,7 @@ async fn main() {
     //demos::hue_progression(conn, pixels)?;
     demos::rainbow_oscillation(conn, pixels).unwrap();
 
-    println!("Starting REST Service");
+    println!("Starting DDP Service");
 
     let handler = LedCommandHandler::new();
 
@@ -86,9 +85,9 @@ async fn main() {
     );
 
     match event_server.await {
-        Ok(_) => println!("Closed REST Service Gracefully"),
+        Ok(_) => println!("Closed DDP Service Gracefully"),
         Err(e) => {
-            println!("REST Service Failure");
+            println!("DDP Service Failure");
             println!("{}", e.to_string());
         }
     };
