@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, net::SocketAddr};
+use std::{collections::BTreeMap, net::SocketAddr, sync::Arc};
 
 use hyper::{body::Incoming, Request, Response};
 use hyper_services::{
@@ -11,13 +11,13 @@ use crate::pixels::{pixelstrip::PixelStrip, pixelstripmanager::PixelStripManager
 
 #[derive(Clone)]
 pub struct LedCommandHandler {
-    pixel_strip_manager: PixelStripManager,
+    pixel_strip_manager: Arc<PixelStripManager>,
 }
 
 impl  LedCommandHandler {
     pub fn new(pixel_strip_manager:PixelStripManager) -> LedCommandHandler {
         LedCommandHandler {
-            pixel_strip_manager,
+            pixel_strip_manager:Arc::new(pixel_strip_manager),
         }
     }
 }

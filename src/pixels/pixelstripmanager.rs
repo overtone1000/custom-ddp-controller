@@ -4,16 +4,14 @@ use ddp_rs::connection::DDPConnection;
 
 use super::pixelstrip::PixelStrip;
 
-#[derive(Clone)]
 pub enum PixelStripCommand
 {
     RainbowOscillation
 }
 
-#[derive(Clone)]
 pub struct PixelStripManager {
     pixel_strip:PixelStrip,
-    connection:Arc<DDPConnection>,
+    connection:DDPConnection,
     commands:VecDeque<PixelStripCommand>
 }
 
@@ -24,7 +22,7 @@ impl  PixelStripManager
         PixelStripManager
         {
             pixel_strip,
-            connection:Arc::new(connection),
+            connection,
             commands:VecDeque::new()
         }
     }
