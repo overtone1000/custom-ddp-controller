@@ -21,19 +21,21 @@ use hyper_services::{service::stateful_service::StatefulService, spawn_server};
 
 #[tokio::main]
 async fn main() {
+    println!("Starting.");
+
     let args: Vec<String> = env::args().collect();
 
     let port = match args.get(1) {
         Some(port) => match port.parse::<u16>() {
             Ok(port) => port,
             Err(e) => {
-                println!("Invalid port {}", port);
-                println!("{}", e.to_string());
+                eprintln!("Invalid port {}", port);
+                eprintln!("{}", e.to_string());
                 return;
             }
         },
         None => {
-            println!("Provide the outbound port as the first argument.");
+            eprintln!("Provide the outbound port as the first argument.");
             return;
         }
     };

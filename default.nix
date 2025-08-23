@@ -1,21 +1,25 @@
 # default.nix
-with import <nixpkgs> {};
+{ pkgs ? import <nixpkgs> {} }:
 
-let
-    #Define system libraries to be available on a path via environment variable for dlopen, which is used by winit
-    #It does not seem these need to be included in the build inputs below. Would need to be confirm for deploying.
-    driverLibPath = with pkgs; lib.makeLibraryPath [
+pkgs.mkShell {
+    nativeBuildInputs = with pkgs; [
+        #llvmPackages.bintools #Not sure this is needed
+        #clang #Not sure this is needed
+        #cargo #Needed for rust
+        #rustc #Needed for rust
+        #rustup #Not sure this is needed
+        #lldb #Needed for debugging
+
+        #From nixos.wiki/wiki/Rust
+        rustc
+        cargo
+        gcc
+        rustfmt
+        clippy 
     ];
-  in {
-    devShell = with pkgs; mkShell {
-        name = "dev-environment";
-        buildInputs = [
-            #rust
-            llvmPackages.bintools
-            clang
-            cargo
-            rustc
-            rustup
-        ];
-    };
-  }
+
+    # Certain Rust tools won't work without this
+    # This can also be fixed by using oxalica/rust-overlay and specifying the rust-src extension
+    # See https://discourse.nixos.org/t/rust-src-not-found-and-other-misadventures-of-developing-rust-on-nixos/11570/3?u=samuela. for more details.
+    # RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
+}
