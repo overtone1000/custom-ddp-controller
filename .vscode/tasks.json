@@ -12,7 +12,7 @@
         },
         {
             "type": "shell",
-            "command": "cargo run 10.10.30.17 8080 30124",
+            "command": "cargo run 10.10.30.17 8080 30125",
             "group": "build",
             "label": "Cargo: Run With Test Args",
             "problemMatcher": [

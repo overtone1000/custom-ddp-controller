@@ -1,13 +1,13 @@
 use std::{collections::BTreeMap, net::SocketAddr, sync::Arc};
 
-use hyper::{body::Incoming, Request, Response};
+use hyper::{body::Incoming, Method, Request, Response};
 use hyper_services::{
-    commons::{HandlerResult},
-    response_building::{full_to_boxed_body},
-    service::{stateful_service::StatefulHandler},
+    commons::HandlerResult, request_processing::get_request_body_as_string, response_building::{bad_request, full_to_boxed_body}, service::stateful_service::StatefulHandler
 };
+use serde::{Deserialize, Serialize};
+use serde_json::to_string;
 
-use crate::pixels::{pixelstrip::PixelStrip, pixelstripmanager::PixelStripManager};
+use crate::pixels::{pixelstrip::PixelStrip, pixelstripmanager::{PixelStripCommand, PixelStripManager}};
 
 #[derive(Clone)]
 pub struct LedCommandHandler {
@@ -24,14 +24,41 @@ impl  LedCommandHandler {
 
 impl  StatefulHandler for LedCommandHandler {
     async fn handle_request(self: Self, request: Request<Incoming>) -> HandlerResult {
-        let method = request.method().clone();
-        let path = request.uri().path().to_string();
+        let method: hyper::Method = request.method().clone();
+        //let path = request.uri().path().to_string();
+        
+        match method {
+            Method::POST => {
+                let body= match get_request_body_as_string(request.into_body()).await
+                {
+                    Ok(body)=>body,
+                    Err(e)=>{
+                        eprintln!("Couldn't get request body. {:?}",e);
+                        return Ok(bad_request());
+                    }
+                };
 
-        println!("Received {} for {}.",method,path);
+                let command:PixelStripCommand=match serde_json::from_str(&body){
+                    Ok(body)=>body,
+                    Err(e)=>{
+                        eprintln!("Couldn't deserialize pixel strip command. {:?}",e);
+                        eprintln!("Received string was: {}",body);
+                        return Ok(bad_request());
+                    }
+                };
 
-        //return Ok(not_found);
-        //return Ok(bad_request);
+                println!("Received {:?}",command);
+                return Ok(Response::new(full_to_boxed_body("Ok")));
+            },
+            method=>{
+                eprintln!("Received unexpected method {:?}",method);
+                return Ok(bad_request());
+            }
+        }
+        
+        //return Ok(not_found());
+        //return Ok(bad_request());
 
-        return Ok(Response::new(full_to_boxed_body("Ok")));
+        
     }
 }

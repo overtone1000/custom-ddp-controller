@@ -120,7 +120,7 @@ async fn main() {
     println!("Starting DDP Service");
 
     let event_server = spawn_server(
-        IpAddr::V4(Ipv4Addr::LOCALHOST),
+        IpAddr::V4(Ipv4Addr::UNSPECIFIED),
         service_port,
         StatefulService::create(handler),
     );
