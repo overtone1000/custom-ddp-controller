@@ -27,6 +27,8 @@ impl  StatefulHandler for LedCommandHandler {
         let method = request.method().clone();
         let path = request.uri().path().to_string();
 
+        println!("Received {} for {}.",method,path);
+
         //return Ok(not_found);
         //return Ok(bad_request);
 
