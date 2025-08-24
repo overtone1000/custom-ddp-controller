@@ -1,7 +1,6 @@
 use std::net::SocketAddr;
 
 use custom_ddp_controller::{
-    displays::demos,
     pixels::{pixelstrip::PixelStrip, pixelstripmanager::PixelStripManager},
     services::LedCommandHandler,
 };

@@ -1,4 +1,5 @@
 use prisma::FromColor;
+use serde::Deserialize;
 
 pub type HSV = prisma::Hsv<f64>;
 pub type RGB = prisma::Rgb<u8>;

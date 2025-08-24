@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, net::SocketAddr, sync::Arc};
+use std::{collections::BTreeMap, net::SocketAddr, sync::{Arc, RwLock}};
 
 use hyper::{body::Incoming, Method, Request, Response};
 use hyper_services::{
@@ -7,17 +7,17 @@ use hyper_services::{
 use serde::{Deserialize, Serialize};
 use serde_json::to_string;
 
-use crate::pixels::{pixelstrip::PixelStrip, pixelstripmanager::{PixelStripCommand, PixelStripManager}};
+use crate::pixels::{pixelstripcommand::PixelStripCommand, pixelstripmanager::PixelStripManager};
 
 #[derive(Clone)]
 pub struct LedCommandHandler {
-    pixel_strip_manager: Arc<PixelStripManager>,
+    pixel_strip_manager: Arc<RwLock<PixelStripManager>>,
 }
 
 impl  LedCommandHandler {
-    pub fn new(pixel_strip_manager:PixelStripManager) -> LedCommandHandler {
+    pub fn new(pixel_strip_manager:Arc<RwLock<PixelStripManager>>) -> LedCommandHandler {
         LedCommandHandler {
-            pixel_strip_manager:Arc::new(pixel_strip_manager),
+            pixel_strip_manager,
         }
     }
 }
