@@ -1,0 +1,65 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'custom_ddp_controller'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=custom-ddp-controller"
+                ],
+                "filter": {
+                    "name": "custom_ddp_controller",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'custom-ddp-controller'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=custom-ddp-controller",
+                    "--package=custom-ddp-controller"
+                ],
+                "filter": {
+                    "name": "custom-ddp-controller",
+                    "kind": "bin"
+                }
+            },
+            "args": ["10.10.30.17","8080","30125"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'custom-ddp-controller'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=custom-ddp-controller",
+                    "--package=custom-ddp-controller"
+                ],
+                "filter": {
+                    "name": "custom-ddp-controller",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
