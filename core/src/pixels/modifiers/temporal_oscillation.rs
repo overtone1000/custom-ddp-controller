@@ -18,7 +18,8 @@ impl TemporalOscillation
         }
     }
 
-    pub fn get_rotation_at_time(&self, time:&Instant)->f64
+    //Returns a value in the range [0.0,1.0)
+    pub fn get_fraction_at_time(&self, time:&Instant)->f64
     {
         let difference = match time.checked_duration_since(self.start){
             Some(diff) => diff,

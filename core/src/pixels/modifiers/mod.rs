@@ -46,10 +46,10 @@ impl ModifierChainable for PixelModifier
 
 impl PixelModifier
 {
-    pub fn new_rainbow_oscillation(period:u32) -> PixelModifier
+    pub fn new_rainbow_oscillation() -> PixelModifier
     {
         PixelModifier::RainbowOscillation(
-            RainbowOscillationModifier::new(TemporalOscillation::new(Instant::now(),period))
+            RainbowOscillationModifier::new()
         )
     }
 }

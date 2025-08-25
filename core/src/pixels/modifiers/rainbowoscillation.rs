@@ -1,4 +1,7 @@
+use std::time::Instant;
+
 use angular_units::Deg;
+use prisma::channel::PosNormalChannelScalar;
 
 use crate::pixels::{pixel::HSV, pixelstrip::PixelStrip};
 
@@ -6,15 +9,24 @@ use super::{temporal_oscillation::TemporalOscillation, ModifierChainable, Modifi
 
 pub struct RainbowOscillationModifier
 {
-    oscillator:TemporalOscillation
+    forward_motion:TemporalOscillation,
+    oscillation:TemporalOscillation
 }
+
+const OSCILLATION_PERIOD:u32 = 30000;
+const FORWARD_MOTION_PERIOD:u32 = 24001; //Should be near oscillation but slightly changed
+const PI_2:f64=std::f64::consts::PI*2.0;
 
 impl RainbowOscillationModifier
 {
-    pub fn new(oscillator:TemporalOscillation)->RainbowOscillationModifier
+    pub fn new()->RainbowOscillationModifier
     {
+        let now=Instant::now();
+        let forward_motion = TemporalOscillation::new(now, FORWARD_MOTION_PERIOD);
+        let oscillation = TemporalOscillation::new(now, OSCILLATION_PERIOD);
         RainbowOscillationModifier{
-            oscillator
+            forward_motion,
+            oscillation
         }
     }
 }
@@ -23,17 +35,35 @@ impl ModifierChainable for RainbowOscillationModifier
 {
     fn run(&mut self, pixel_strip:&mut PixelStrip, params:&ModifierParameters)->ModifierResult
     {
-        
-        let rotational_offset_from_time=self.oscillator.get_rotation_at_time(&params.time);
+        let forward_motion_fraction=self.forward_motion.get_fraction_at_time(&params.time);
+        let oscillation_fraction=self.oscillation.get_fraction_at_time(&params.time);
+        let oscillation_motion=((oscillation_fraction*PI_2).sin()+1.0)/2.0;
         
         let pixel_count_f64:f64=(pixel_strip.count() as u32).into();
 
+        //Calculate a funky curve with values along both x and y ranging from 0.0 to 1.0 and map the curve to the pixel strip based on pixel location
+        let funky_curve = |location_fraction:f64|
+        {
+            //First oscillate to avoid static nodes
+            let location_fraction=(location_fraction+oscillation_motion)%1.0;
+            
+            //Non-linearize to stretch out colors
+            let location_fraction = ((location_fraction.powi(2)*PI_2).sin()+1.0)/2.0;
+
+            //Forward motion to move curve along strip and to change which color is stretched
+            let location_fraction = location_fraction+forward_motion_fraction;
+
+            //This prevents a bug with large angles. unreachable match in HSV gets called.
+            location_fraction%1.0
+        };
+
         for a in 0..pixel_strip.count() {
-            let rotational_offset_from_location = f64::from(a as u32) / pixel_count_f64;
-            let total_offset =
-                rotational_offset_from_location + rotational_offset_from_time;
-            let total_offset = total_offset % 1.0; //This prevents a bug with large angles.
-            let final_angle = Deg(360.0 * total_offset);
+            let location_fraction = f64::from(a as u32) / pixel_count_f64;
+
+            let rotation = funky_curve(location_fraction);
+            //let rotation = rotation % 1.0;
+
+            let final_angle = Deg(360.0 * rotation);
 
             let hue = HSV::new(final_angle, 1.0, 1.0);
 

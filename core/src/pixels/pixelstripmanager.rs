@@ -1,9 +1,5 @@
 use std::{
-    collections::{HashSet, VecDeque},
-    fmt::write,
-    future::IntoFuture,
-    sync::{Arc, Condvar, Mutex, RwLock},
-    time::{Duration, Instant},
+    collections::{HashSet, VecDeque}, fmt::write, future::IntoFuture, sync::{Arc, Condvar, Mutex, RwLock}, thread, time::{Duration, Instant}
 };
 
 use ddp_rs::connection::DDPConnection;
@@ -113,15 +109,28 @@ impl PixelStripManager {
             },
         });
 
-        tokio::spawn(Self::run(psm.clone()));
+        tokio::spawn(Self::start_manager_thread(psm.clone()));
 
         psm
+    }
+
+    //Worker thread will be respawned if there's an unhandled error. This was happening with HSV. Should be mitigated, but this will handle anything unforeseen.
+    pub async fn start_manager_thread(psm:Arc<PixelStripManager>)
+    {
+        loop{
+            match tokio::spawn(Self::run(psm.clone())).await
+            {
+                Ok(_)=>{println!("Worker thread stopped.")}
+                Err(e)=>{eprintln!("Worked thread halted with error {:?}",e)}
+            }
+            thread::sleep(Duration::from_secs(10));
+        }
     }
 
     fn wait_for_work(&self) {
         match self.commands_and_condvar.commands.lock() {
             Ok(lock) => match self.commands_and_condvar.condvar.wait(lock) {
-                Ok(_) => println!("Done waiting for work."),
+                Ok(_) => println!("Working..."),
                 Err(e) => {
                     eprintln!("Mutex lock error. {:?}", e);
                 }
@@ -141,13 +150,16 @@ impl PixelStripManager {
                         Ok(mut commands) => {
                             for command in commands.iter() {
                                 match command {
-                                    PixelStripCommand::RunRainbowOscillation => {
+                                    PixelStripCommand::RunRandomPreview => {
                                         strip_and_chain.modifier_chain.clear();
                                         strip_and_chain
                                             .modifier_chain
-                                            .push(PixelModifier::new_rainbow_oscillation(5000));
+                                            .push(PixelModifier::new_rainbow_oscillation());
                                     }
-                                    PixelStripCommand::RunWaveout => {
+                                    PixelStripCommand::RunRandomFadeout => {
+                                        eprintln!("Not implemented.");
+                                    }
+                                    PixelStripCommand::RunRandomPost => {
                                         eprintln!("Not implemented.");
                                     }
                                     PixelStripCommand::SinglePixel(_, pixel_values) => {

@@ -7,8 +7,9 @@ pub struct PixelValues{red:u8,green:u8,blue:u8}
 #[derive(Serialize, Deserialize, Debug)]
 pub enum PixelStripCommand
 {
-    RunRainbowOscillation,
-    RunWaveout,
+    RunRandomPreview,
+    RunRandomFadeout,
+    RunRandomPost,
     SinglePixel(u32,PixelValues)
 }
 
@@ -28,8 +29,9 @@ mod tests {
 
     #[test]
     fn serialization() {
-        check_serialization(&PixelStripCommand::RunRainbowOscillation);
-        check_serialization(&&PixelStripCommand::RunWaveout);
+        check_serialization(&PixelStripCommand::RunRandomPreview);
+        check_serialization(&&PixelStripCommand::RunRandomFadeout);
+        check_serialization(&&PixelStripCommand::RunRandomPost);
         check_serialization(&&PixelStripCommand::SinglePixel(14, PixelValues{red:255,green:7,blue:42}));
     }
 }
