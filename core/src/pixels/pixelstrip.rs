@@ -1,7 +1,10 @@
 use ddp_rs::{connection, error::DDPError};
 use prisma::{FromColor, Rgb};
 
-use super::pixel::{PixelSource, HSV};
+use super::{
+    pixel::{PixelSource, HSV, RGB},
+    pixelstripcommand::PixelValues,
+};
 
 pub struct PixelStrip {
     raw_bytes: Vec<u8>,
@@ -53,6 +56,18 @@ impl PixelStrip {
         }
     }
 
+    pub fn set_pixel_rgb(&mut self, index: usize, rgb: &PixelValues) {
+        match self.pixel_colors.get_mut(index) {
+            Some(pixel_color) => {
+                let hsv = super::pixel::hsv_rom_rgb(rgb);
+                *pixel_color = hsv;
+            }
+            None => {
+                eprintln!("Access error.");
+            }
+        }
+    }
+
     pub fn get_pixel_hsv(&mut self, index: usize) -> Option<&HSV> {
         self.pixel_colors.get(index)
     }
@@ -84,7 +99,7 @@ impl PixelStrip {
         self.write_to_connection(conn)
     }
 
-    pub(crate) fn turn_off(&mut self) {
+    pub(crate) fn all_pixels_to_black(&mut self) {
         for pixel in &mut self.pixel_colors {
             pixel.set_value(0.0);
         }

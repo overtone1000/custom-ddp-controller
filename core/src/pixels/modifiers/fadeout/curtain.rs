@@ -111,7 +111,7 @@ impl ModifierChainable for CurtainModifier {
             }
             TemporalProgressionStatus::NotYetStarted => ModifierResult::Continue,
             TemporalProgressionStatus::Finished => {
-                pixel_strip.turn_off();
+                pixel_strip.all_pixels_to_black();
                 ModifierResult::RemoveAllModifiers
             }
         }

@@ -177,17 +177,20 @@ impl PixelStripManager {
                                                 Instant::now(),
                                                 Duration::from_secs(10),
                                                 50.0,
-                                                //vec!((449,225),(0,224)) //End to mid and start to mid
-                                                //vec![(0, 449)],
-                                                vec![(449, 0)],
+                                                vec![(449, 225), (0, 224)], //End to mid and start to mid
+                                                                            //vec![(0, 449)],
+                                                                            //vec![(449, 0)],
                                             )),
                                         );
                                     }
                                     PixelStripCommand::RunRandomPost => {
                                         eprintln!("Not implemented.");
                                     }
-                                    PixelStripCommand::SinglePixel(_, pixel_values) => {
-                                        eprintln!("Not implemented.");
+                                    PixelStripCommand::SinglePixel(index, pixel_values) => {
+                                        strip_and_chain.pixel_strip.all_pixels_to_black();
+                                        strip_and_chain
+                                            .pixel_strip
+                                            .set_pixel_rgb(*index as usize, pixel_values);
                                     }
                                 }
                             }
