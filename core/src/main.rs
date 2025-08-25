@@ -4,12 +4,10 @@ use custom_ddp_controller::{
     pixels::{pixelstrip::PixelStrip, pixelstripmanager::PixelStripManager},
     services::LedCommandHandler,
 };
-use ddp_rs::{
-    connection::DDPConnection,
-    protocol,
-};
+use ddp_rs::{connection::DDPConnection, protocol};
 
 const LED_COUNT: usize = 450; //There are 450 LEDs. This was confirmed.
+const DISPLAY_FREQUENCY: f64 = 60.0; //Hz 60Hz seems pretty good! Doesn't seem to jitter or overload
 
 use std::{
     env,
@@ -24,17 +22,14 @@ async fn main() {
 
     let args: Vec<String> = env::args().collect();
 
-    let device_ip:Ipv4Addr = match args.get(1) {
-         Some(ip) => {
-            match ip.parse::<Ipv4Addr>()
-            {
-                Ok(ip)=>ip,
-                Err(e)=>{
-                    eprintln!("Couldn't parse provided IP address {}. {:?}",ip,e);
-                    return;
-                }
+    let device_ip: Ipv4Addr = match args.get(1) {
+        Some(ip) => match ip.parse::<Ipv4Addr>() {
+            Ok(ip) => ip,
+            Err(e) => {
+                eprintln!("Couldn't parse provided IP address {}. {:?}", ip, e);
+                return;
             }
-         },
+        },
         None => {
             eprintln!("Provide the device IP address as the first argument.");
             return;
@@ -85,8 +80,7 @@ async fn main() {
         }
     };
 
-    let socket_address: SocketAddr =
-        SocketAddr::new(IpAddr::V4(device_ip), device_port);
+    let socket_address: SocketAddr = SocketAddr::new(IpAddr::V4(device_ip), device_port);
 
     println!("Creating DDP connection at {:?}.", socket_address);
     let conn = DDPConnection::try_new(
@@ -108,7 +102,7 @@ async fn main() {
     //Scope the pixel strip manager creation to avoid deadlock.
     let event_server = {
         println!("Creating pixel strip manager.");
-        let pixel_strip_manager = PixelStripManager::new(pixel_strip, conn);
+        let pixel_strip_manager = PixelStripManager::new(pixel_strip, DISPLAY_FREQUENCY, conn);
 
         //demos::red_green_blue(conn, pixels)?;
         //demos::hue_progression(conn, pixels)?;
