@@ -53,7 +53,7 @@ impl PixelStrip {
         }
     }
 
-    pub fn get_pixel_hsv(&mut self, index: usize)->Option<&HSV>{
+    pub fn get_pixel_hsv(&mut self, index: usize) -> Option<&HSV> {
         self.pixel_colors.get(index)
     }
 
@@ -82,5 +82,11 @@ impl PixelStrip {
     ) -> Result<usize, DDPError> {
         self.flush_pixels_to_bytes();
         self.write_to_connection(conn)
+    }
+
+    pub(crate) fn turn_off(&mut self) {
+        for pixel in &mut self.pixel_colors {
+            pixel.set_value(0.0);
+        }
     }
 }

@@ -1,5 +1,10 @@
 use std::{
-    collections::{HashSet, VecDeque}, fmt::write, future::IntoFuture, sync::{Arc, Condvar, Mutex, RwLock}, thread, time::{Duration, Instant}
+    collections::{HashSet, VecDeque},
+    fmt::write,
+    future::IntoFuture,
+    sync::{Arc, Condvar, Mutex, RwLock},
+    thread,
+    time::{Duration, Instant},
 };
 
 use ddp_rs::connection::DDPConnection;
@@ -48,9 +53,11 @@ impl StripAndChain {
             match modifier.run(&mut self.pixel_strip, &params) {
                 ModifierResult::Continue => (),
                 ModifierResult::RemoveThisModifier => {
+                    println!("Remove modifier {}", index);
                     self.to_remove.insert(index);
                 }
                 ModifierResult::RemoveAllModifiers => {
+                    println!("Remove all modifiers.");
                     remove_all = true;
                 }
             }
@@ -73,6 +80,7 @@ impl StripAndChain {
         self.last_send_time = Instant::now();
 
         if remove_all {
+            println!("Removing all modifiers.");
             self.modifier_chain.clear();
         }
 
@@ -117,13 +125,15 @@ impl PixelStripManager {
     }
 
     //Worker thread will be respawned if there's an unhandled error. This was happening with HSV. Should be mitigated, but this will handle anything unforeseen.
-    pub async fn start_manager_thread(psm:Arc<PixelStripManager>)
-    {
-        loop{
-            match tokio::spawn(Self::run(psm.clone())).await
-            {
-                Ok(_)=>{println!("Worker thread stopped.")}
-                Err(e)=>{eprintln!("Worked thread halted with error {:?}",e)}
+    pub async fn start_manager_thread(psm: Arc<PixelStripManager>) {
+        loop {
+            match tokio::spawn(Self::run(psm.clone())).await {
+                Ok(_) => {
+                    println!("Worker thread stopped.")
+                }
+                Err(e) => {
+                    eprintln!("Worked thread halted with error {:?}", e)
+                }
             }
             thread::sleep(Duration::from_secs(10));
         }
@@ -152,7 +162,6 @@ impl PixelStripManager {
                     // Now lock the commands and condvar mutex for access
                     match self.commands_and_condvar.commands.lock() {
                         Ok(mut commands) => {
-
                             // Process commands
                             for command in commands.iter() {
                                 match command {
@@ -164,14 +173,14 @@ impl PixelStripManager {
                                     }
                                     PixelStripCommand::RunRandomFadeout => {
                                         strip_and_chain.modifier_chain.push(
-                                            PixelModifier::Curtain(
-                                                CurtainModifier::new(
-                                                    Instant::now(),
-                                                    Duration::from_secs(10),
-                                                    20.0,
-                                                    vec!((449,225),(0,224)) //End to mid and start to mid
-                                                )
-                                            )
+                                            PixelModifier::Curtain(CurtainModifier::new(
+                                                Instant::now(),
+                                                Duration::from_secs(10),
+                                                50.0,
+                                                //vec!((449,225),(0,224)) //End to mid and start to mid
+                                                //vec![(0, 449)],
+                                                vec![(449, 0)],
+                                            )),
                                         );
                                     }
                                     PixelStripCommand::RunRandomPost => {
@@ -185,7 +194,6 @@ impl PixelStripManager {
 
                             //Commands are processed, now clear them
                             commands.clear();
-
                         }
                         Err(e) => {
                             eprintln!("Can't lock commands. {:?}", e);

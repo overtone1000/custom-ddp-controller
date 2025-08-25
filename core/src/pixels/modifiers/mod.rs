@@ -9,49 +9,43 @@ use display::rainbow_oscillation::RainbowOscillationModifier;
 mod demos;
 pub mod display;
 pub mod fadeout;
-mod temporal_oscillation;
-mod temporal_progression;
+pub mod temporal_oscillation;
+pub mod temporal_progression;
 
-pub const TWO_PI:f64=std::f64::consts::PI*2.0;
+pub const TWO_PI: f64 = std::f64::consts::PI * 2.0;
 
-pub enum PixelModifier
-{
+pub enum PixelModifier {
     RainbowOscillation(RainbowOscillationModifier),
-    Curtain(CurtainModifier)
+    Curtain(CurtainModifier),
 }
 
 pub struct ModifierParameters {
-    pub time:Instant
+    pub time: Instant,
 }
 
 pub enum ModifierResult {
     Continue,
     RemoveThisModifier,
-    RemoveAllModifiers
+    RemoveAllModifiers,
 }
 
 pub trait ModifierChainable {
-    fn run(&mut self, pixel_strip:&mut PixelStrip, params:&ModifierParameters)->ModifierResult;
+    fn run(&mut self, pixel_strip: &mut PixelStrip, params: &ModifierParameters) -> ModifierResult;
 }
 
-impl ModifierChainable for PixelModifier
-{
-    fn run(&mut self, pixel_strip:&mut PixelStrip, params:&ModifierParameters)->ModifierResult
-    {
-        match self
-        {
-            PixelModifier::RainbowOscillation(rainbow_oscillation_modifier) => rainbow_oscillation_modifier.run(pixel_strip,params),
-            PixelModifier::Curtain(curtain_modifier) => curtain_modifier.run(pixel_strip,params),
+impl ModifierChainable for PixelModifier {
+    fn run(&mut self, pixel_strip: &mut PixelStrip, params: &ModifierParameters) -> ModifierResult {
+        match self {
+            PixelModifier::RainbowOscillation(rainbow_oscillation_modifier) => {
+                rainbow_oscillation_modifier.run(pixel_strip, params)
+            }
+            PixelModifier::Curtain(curtain_modifier) => curtain_modifier.run(pixel_strip, params),
         }
     }
 }
 
-impl PixelModifier
-{
-    pub fn new_rainbow_oscillation() -> PixelModifier
-    {
-        PixelModifier::RainbowOscillation(
-            RainbowOscillationModifier::new()
-        )
+impl PixelModifier {
+    pub fn new_rainbow_oscillation() -> PixelModifier {
+        PixelModifier::RainbowOscillation(RainbowOscillationModifier::new())
     }
 }
