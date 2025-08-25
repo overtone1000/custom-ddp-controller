@@ -3,9 +3,7 @@ use std::time::Instant;
 use angular_units::Deg;
 use prisma::channel::PosNormalChannelScalar;
 
-use crate::pixels::{pixel::HSV, pixelstrip::PixelStrip};
-
-use super::{temporal_oscillation::TemporalOscillation, ModifierChainable, ModifierParameters, ModifierResult};
+use crate::pixels::{modifiers::{temporal_oscillation::TemporalOscillation, ModifierChainable, ModifierParameters, ModifierResult, TWO_PI}, pixel::HSV, pixelstrip::PixelStrip};
 
 pub struct RainbowOscillationModifier
 {
@@ -15,7 +13,6 @@ pub struct RainbowOscillationModifier
 
 const OSCILLATION_PERIOD:u32 = 30000;
 const FORWARD_MOTION_PERIOD:u32 = 24001; //Should be near oscillation but slightly changed
-const PI_2:f64=std::f64::consts::PI*2.0;
 
 impl RainbowOscillationModifier
 {
@@ -37,7 +34,7 @@ impl ModifierChainable for RainbowOscillationModifier
     {
         let forward_motion_fraction=self.forward_motion.get_fraction_at_time(&params.time);
         let oscillation_fraction=self.oscillation.get_fraction_at_time(&params.time);
-        let oscillation_motion=((oscillation_fraction*PI_2).sin()+1.0)/2.0;
+        let oscillation_motion=((oscillation_fraction*TWO_PI).sin()+1.0)/2.0;
         
         let pixel_count_f64:f64=(pixel_strip.count() as u32).into();
 
@@ -48,7 +45,7 @@ impl ModifierChainable for RainbowOscillationModifier
             let location_fraction=(location_fraction+oscillation_motion)%1.0;
             
             //Non-linearize to stretch out colors
-            let location_fraction = ((location_fraction.powi(2)*PI_2).sin()+1.0)/2.0;
+            let location_fraction = ((location_fraction.powi(2)*TWO_PI).cos()+1.0)/2.0;
 
             //Forward motion to move curve along strip and to change which color is stretched
             let location_fraction = location_fraction+forward_motion_fraction;

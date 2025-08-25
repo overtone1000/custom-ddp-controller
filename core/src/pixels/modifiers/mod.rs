@@ -1,21 +1,23 @@
 use std::time::Instant;
 
-use rainbowoscillation::RainbowOscillationModifier;
-use temporal_oscillation::TemporalOscillation;
-use waveout::WaveoutModifier;
+use fadeout::curtain::CurtainModifier;
 
 use super::pixelstrip::PixelStrip;
 
+use display::rainbow_oscillation::RainbowOscillationModifier;
+
 mod demos;
-mod rainbowoscillation;
-mod waveout;
+pub mod display;
+pub mod fadeout;
 mod temporal_oscillation;
 mod temporal_progression;
+
+pub const TWO_PI:f64=std::f64::consts::PI*2.0;
 
 pub enum PixelModifier
 {
     RainbowOscillation(RainbowOscillationModifier),
-    Waveout(WaveoutModifier)
+    Curtain(CurtainModifier)
 }
 
 pub struct ModifierParameters {
@@ -39,7 +41,7 @@ impl ModifierChainable for PixelModifier
         match self
         {
             PixelModifier::RainbowOscillation(rainbow_oscillation_modifier) => rainbow_oscillation_modifier.run(pixel_strip,params),
-            PixelModifier::Waveout(waveout_modifier) => waveout_modifier.run(pixel_strip,params),
+            PixelModifier::Curtain(curtain_modifier) => curtain_modifier.run(pixel_strip,params),
         }
     }
 }

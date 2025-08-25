@@ -5,6 +5,8 @@ use std::{
 use ddp_rs::connection::DDPConnection;
 use serde::{Deserialize, Serialize};
 
+use crate::pixels::modifiers::fadeout::curtain::CurtainModifier;
+
 use super::{
     modifiers::{ModifierChainable, ModifierParameters, ModifierResult, PixelModifier},
     pixelstrip::PixelStrip,
@@ -144,10 +146,14 @@ impl PixelStripManager {
     async fn run(self: Arc<PixelStripManager>) {
         println!("Starting pixel strip manager thread.");
         loop {
+            // First lock the strip_and_chain mutex for access
             let continue_working = match self.strip_and_chain.lock() {
                 Ok(mut strip_and_chain) => {
+                    // Now lock the commands and condvar mutex for access
                     match self.commands_and_condvar.commands.lock() {
                         Ok(mut commands) => {
+
+                            // Process commands
                             for command in commands.iter() {
                                 match command {
                                     PixelStripCommand::RunRandomPreview => {
@@ -157,7 +163,16 @@ impl PixelStripManager {
                                             .push(PixelModifier::new_rainbow_oscillation());
                                     }
                                     PixelStripCommand::RunRandomFadeout => {
-                                        eprintln!("Not implemented.");
+                                        strip_and_chain.modifier_chain.push(
+                                            PixelModifier::Curtain(
+                                                CurtainModifier::new(
+                                                    Instant::now(),
+                                                    Duration::from_secs(10),
+                                                    20.0,
+                                                    vec!((449,225),(0,224)) //End to mid and start to mid
+                                                )
+                                            )
+                                        );
                                     }
                                     PixelStripCommand::RunRandomPost => {
                                         eprintln!("Not implemented.");
@@ -167,13 +182,16 @@ impl PixelStripManager {
                                     }
                                 }
                             }
+
+                            //Commands are processed, now clear them
                             commands.clear();
+
                         }
                         Err(e) => {
                             eprintln!("Can't lock commands. {:?}", e);
                         }
                     }
-                    strip_and_chain.run_modifier_chain()
+                    strip_and_chain.run_modifier_chain() //Result of this will set "continue_working" variable
                 }
                 Err(e) => {
                     eprintln!("Couldn't lock strip and chain. {:?}", e);

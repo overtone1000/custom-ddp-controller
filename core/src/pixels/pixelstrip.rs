@@ -53,6 +53,10 @@ impl PixelStrip {
         }
     }
 
+    pub fn get_pixel_hsv(&mut self, index: usize)->Option<&HSV>{
+        self.pixel_colors.get(index)
+    }
+
     fn flush_pixels_to_bytes(&mut self) {
         let pixel_colors_iterator = self.pixel_colors.iter_mut();
         let mutable_bytes = &mut self.raw_bytes;
