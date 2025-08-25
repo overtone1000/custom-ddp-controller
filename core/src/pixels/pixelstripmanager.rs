@@ -15,66 +15,16 @@ use super::{
     pixelstripcommand::PixelStripCommand,
 };
 
-pub struct MutCondvar {
-    mutex: Mutex<()>,
-    condvar: Condvar,
-}
-
-impl MutCondvar {
-    async fn notify_thread_of_work(&mut self) {
-        match self.mutex.lock() {
-            Ok(_) => {
-                println!("Notifying thread to work.");
-                self.condvar.notify_one();
-            }
-            Err(e) => {
-                eprintln!("Couldn't get wait. {:?}", e);
-            }
-        }
-    }
-
-    async fn wait_for_work(&mut self) {
-        match self.mutex.lock() {
-            Ok(lock) => match self.condvar.wait(lock) {
-                Ok(_) => println!("Done waiting for work."),
-                Err(e) => {
-                    eprintln!("Mutex lock error. {:?}", e);
-                }
-            },
-            Err(e) => {
-                eprintln!("Couldn't get wait. {:?}", e);
-            }
-        }
-    }
-}
-
-pub struct PixelStripManager {
-    pixel_strip: PixelStrip,
-    connection: DDPConnection,
-    commands: VecDeque<PixelStripCommand>,
-    modifier_chain: Vec<PixelModifier>,
+struct StripAndChain
+{
+    pixel_strip:PixelStrip,
+    modifier_chain:Vec<PixelModifier>,
     to_remove: HashSet<usize>,
+    connection: DDPConnection,
 }
 
-impl PixelStripManager {
-    pub fn new(
-        pixel_strip: PixelStrip,
-        connection: DDPConnection,
-    ) -> (Arc<RwLock<PixelStripManager>>, {
-        let psm = Arc::new(RwLock::new(PixelStripManager) {
-            pixel_strip,
-            connection,
-            commands: VecDeque::new(),
-            modifier_chain: Vec::new(),
-            to_remove: HashSet::new(),
-        }));
-
-        let thread = tokio::spawn(Self::run(retval.clone()));
-        thread.into_future();
-
-        retval
-    }
-
+impl StripAndChain
+{
     fn run_modifier_chain(&mut self) -> bool {
         let params = ModifierParameters {
             time: Instant::now(),
@@ -94,40 +44,128 @@ impl PixelStripManager {
             }
         }
 
+        match self.pixel_strip.flush_and_write(&mut self.connection)
+        {
+            Ok(_)=>(),
+            Err(e)=>{eprintln!("Couldn't write to DDP connection. {:?}",e)}
+        }
+
         if remove_all {
             self.modifier_chain.clear();
         }
 
         self.modifier_chain.len() > 0 //Return true if the modifier chain is still populated.
     }
+}
 
-    async fn run(selfarc: Arc<RwLock<PixelStripManager>>, wait: Arc<MutCondvar>) {
-        loop {
-            match selfarc.write() {
-                Ok(mut writeable_self) => {
-                    match writeable_self.wait.mutex.lock() {
-                        Ok(_) => {
-                            writeable_self.wait.condvar.notify_one();
-                        }
-                        Err(e) => {
-                            eprintln!("Couldn't get wait. {:?}", e);
-                        }
-                    }
+struct CommandsAndConvar
+{
+    commands: Mutex<Vec<PixelStripCommand>>,
+    condvar: Condvar
+}
 
-                    let continue_working = writeable_self.run_modifier_chain();
-                    if !continue_working {
-                        writeable_self.wait_for_work();
-                    }
-                }
+pub struct PixelStripManager {
+    strip_and_chain:Mutex<StripAndChain>,
+    commands_and_condvar:CommandsAndConvar,
+}
+
+impl PixelStripManager {
+    pub fn new(
+        pixel_strip: PixelStrip,
+        connection: DDPConnection,
+    ) -> Arc<PixelStripManager> {
+        
+        let psm = Arc::new(PixelStripManager {
+            strip_and_chain:Mutex::new(StripAndChain{
+                pixel_strip,
+                modifier_chain:Vec::new(),
+                to_remove: HashSet::new(),
+                connection,
+            }),
+            commands_and_condvar: CommandsAndConvar{
+                commands:Mutex::new(Vec::new()),
+                condvar:Condvar::new()
+            }
+        });
+
+        tokio::spawn(Self::run(psm.clone()));
+        
+        psm
+    }
+
+    fn wait_for_work(&self) {
+        match self.commands_and_condvar.commands.lock() {
+            Ok(lock) => match self.commands_and_condvar.condvar.wait(lock) {
+                Ok(_) => println!("Done waiting for work."),
                 Err(e) => {
-                    eprintln!("Couldn't get writable access. {:?}", e);
+                    eprintln!("Mutex lock error. {:?}", e);
                 }
-            };
+            },
+            Err(e) => {
+                eprintln!("Couldn't get wait. {:?}", e);
+            }
         }
     }
 
-    pub async fn queue_command(&mut self, command: PixelStripCommand) {
-        self.commands.push_back(command);
-        self.notify_thread_of_work();
+
+    async fn run(self: Arc<PixelStripManager>) {
+        println!("Starting pixel strip manager thread.");
+        loop {
+            let continue_working=match self.strip_and_chain.lock(){
+                Ok(mut strip_and_chain)=>
+                {
+                    match self.commands_and_condvar.commands.lock()
+                    {
+                        Ok(mut commands)=>{
+                            for command in commands.iter()
+                            {
+                                match command{
+                                    PixelStripCommand::RunRainbowOscillation => {
+                                        strip_and_chain.modifier_chain.clear();
+                                        strip_and_chain.modifier_chain.push(
+                                            PixelModifier::new_rainbow_oscillation(5000)
+                                        );
+                                    },
+                                    PixelStripCommand::RunWaveout => {
+                                        eprintln!("Not implemented.");
+                                    },
+                                    PixelStripCommand::SinglePixel(_, pixel_values) => {
+                                        eprintln!("Not implemented.");
+                                    },
+                                }
+                            }
+                            commands.clear();
+                        },
+                        Err(e)=>{
+                            eprintln!("Can't lock commands. {:?}", e);
+                        }
+                    }
+                    strip_and_chain.run_modifier_chain()                                        
+                },
+                Err(e)=>{
+                    eprintln!("Couldn't lock strip and chain. {:?}",e);
+                    false
+                }
+            };
+
+            if !continue_working {
+                println!("Waiting for work.");
+                self.wait_for_work();
+            }
+        }
+    }
+
+    pub fn queue_command(&self, command: PixelStripCommand) {
+
+        match self.commands_and_condvar.commands.lock() {
+            Ok(mut lock) => {
+                println!("Notifying thread to work.");
+                lock.push(command);
+                self.commands_and_condvar.condvar.notify_one();
+            }
+            Err(e) => {
+                eprintln!("Couldn't get wait. {:?}", e);
+            }
+        }
     }
 }

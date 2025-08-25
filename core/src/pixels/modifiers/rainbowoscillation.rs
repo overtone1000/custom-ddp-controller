@@ -9,6 +9,16 @@ pub struct RainbowOscillationModifier
     oscillator:TemporalOscillation
 }
 
+impl RainbowOscillationModifier
+{
+    pub fn new(oscillator:TemporalOscillation)->RainbowOscillationModifier
+    {
+        RainbowOscillationModifier{
+            oscillator
+        }
+    }
+}
+
 impl ModifierChainable for RainbowOscillationModifier
 {
     fn run(&mut self, pixel_strip:&mut PixelStrip, params:&ModifierParameters)->ModifierResult

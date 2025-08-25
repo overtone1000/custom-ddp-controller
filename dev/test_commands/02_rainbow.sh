@@ -2,5 +2,5 @@
 
 curl --header "Content-Type: application/json" \
   --request POST \
-  --data '"Run2RainbowOscillation"' \
+  --data '"RunRainbowOscillation"' \
   127.0.0.1:30125

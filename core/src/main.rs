@@ -105,24 +105,27 @@ async fn main() {
         }
     };
 
-    println!("Creating pixel strip manager.");
-    let pixel_strip_manager = PixelStripManager::new(pixel_strip, conn);
+    //Scope the pixel strip manager creation to avoid deadlock.
+    let event_server = {
+        println!("Creating pixel strip manager.");
+        let pixel_strip_manager = PixelStripManager::new(pixel_strip, conn);
 
-    //demos::red_green_blue(conn, pixels)?;
-    //demos::hue_progression(conn, pixels)?;
-    //demos::rainbow_oscillation(conn, pixel_strip).unwrap();
+        //demos::red_green_blue(conn, pixels)?;
+        //demos::hue_progression(conn, pixels)?;
+        //demos::rainbow_oscillation(conn, pixel_strip).unwrap();
 
-    println!("Creating LED Command Handler.");
+        println!("Creating LED Command Handler.");
 
-    let handler = LedCommandHandler::new(pixel_strip_manager);
+        let handler = LedCommandHandler::new(pixel_strip_manager);
 
-    println!("Starting DDP Service");
+        println!("Starting DDP Service");
 
-    let event_server = spawn_server(
-        IpAddr::V4(Ipv4Addr::UNSPECIFIED),
-        service_port,
-        StatefulService::create(handler),
-    );
+        spawn_server(
+            IpAddr::V4(Ipv4Addr::UNSPECIFIED),
+            service_port,
+            StatefulService::create(handler),
+        )
+    };
 
     println!("DDP Service Running");
 

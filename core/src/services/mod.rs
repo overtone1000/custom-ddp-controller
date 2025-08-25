@@ -11,11 +11,11 @@ use crate::pixels::{pixelstripcommand::PixelStripCommand, pixelstripmanager::Pix
 
 #[derive(Clone)]
 pub struct LedCommandHandler {
-    pixel_strip_manager: Arc<RwLock<PixelStripManager>>,
+    pixel_strip_manager: Arc<PixelStripManager>,
 }
 
 impl  LedCommandHandler {
-    pub fn new(pixel_strip_manager:Arc<RwLock<PixelStripManager>>) -> LedCommandHandler {
+    pub fn new(pixel_strip_manager:Arc<PixelStripManager>) -> LedCommandHandler {
         LedCommandHandler {
             pixel_strip_manager,
         }
@@ -23,6 +23,7 @@ impl  LedCommandHandler {
 }
 
 impl  StatefulHandler for LedCommandHandler {
+
     async fn handle_request(self: Self, request: Request<Incoming>) -> HandlerResult {
         let method: hyper::Method = request.method().clone();
         //let path = request.uri().path().to_string();
@@ -48,6 +49,11 @@ impl  StatefulHandler for LedCommandHandler {
                 };
 
                 println!("Received {:?}",command);
+
+                {
+                    self.pixel_strip_manager.queue_command(command);
+                }
+
                 return Ok(Response::new(full_to_boxed_body("Ok")));
             },
             method=>{
