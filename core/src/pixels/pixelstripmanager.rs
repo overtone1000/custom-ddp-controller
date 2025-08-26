@@ -10,7 +10,7 @@ use std::{
 use ddp_rs::connection::DDPConnection;
 use serde::{Deserialize, Serialize};
 
-use crate::pixels::modifiers::fadeout::curtain::CurtainModifier;
+use crate::pixels::modifiers::fadeout::{curtain::CurtainModifier, random_fadeout};
 
 use super::{
     modifiers::{ModifierChainable, ModifierParameters, ModifierResult, PixelModifier},
@@ -172,16 +172,7 @@ impl PixelStripManager {
                                             .push(PixelModifier::new_rainbow_oscillation());
                                     }
                                     PixelStripCommand::RunRandomFadeout => {
-                                        strip_and_chain.modifier_chain.push(
-                                            PixelModifier::Curtain(CurtainModifier::new(
-                                                Instant::now(),
-                                                Duration::from_secs(10),
-                                                50.0,
-                                                vec![(449, 225), (0, 224)], //End to mid and start to mid
-                                                                            //vec![(0, 449)],
-                                                                            //vec![(449, 0)],
-                                            )),
-                                        );
+                                        strip_and_chain.modifier_chain.push(random_fadeout());
                                     }
                                     PixelStripCommand::RunRandomPost => {
                                         eprintln!("Not implemented.");

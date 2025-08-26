@@ -3,21 +3,9 @@ use std::net::SocketAddr;
 use custom_ddp_controller::{
     pixels::{pixelstrip::PixelStrip, pixelstripmanager::PixelStripManager},
     services::LedCommandHandler,
+    DISPLAY_FREQUENCY, LED_COUNT,
 };
 use ddp_rs::{connection::DDPConnection, protocol};
-
-const LED_COUNT: usize = 450; //There are 450 LEDs. This was confirmed.
-
-const BACK_RIGHT_CORNER: usize = 0;
-const RIGHT_MIDDLE: usize = 74;
-const FRONT_RIGHT_CORNER: usize = 148;
-const FRONT_MIDDLE: usize = 186;
-const FRONT_LEFT_CORNER: usize = 224;
-const LEFT_MIDDLE: usize = 298;
-const BACK_LEFT_CORNER: usize = 372;
-const BACK_MIDDLE: usize = 410;
-
-const DISPLAY_FREQUENCY: f64 = 60.0; //Hz 60Hz seems pretty good! Doesn't seem to jitter or overload
 
 use std::{
     env,

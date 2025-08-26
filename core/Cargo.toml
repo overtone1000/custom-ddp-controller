@@ -16,3 +16,5 @@ hyper-services = { git = "https://github.com/overtone1000/trm-rust-libs" } #use 
 
 serde = "1"
 serde_json = "1"
+
+rand = "0"
