@@ -16,20 +16,19 @@ pub mod dropout;
 enum FadeoutOption {
     CornerCurtain,
     SideCurtain,
-    Dropout
+    Dropout,
 }
 
-const ALL_FADEOUT_OPTIONS: [FadeoutOption; 3] =
-    [
-        FadeoutOption::CornerCurtain, 
-        FadeoutOption::SideCurtain,
-        FadeoutOption::Dropout
-    ];
+const ALL_FADEOUT_OPTIONS: [FadeoutOption; 3] = [
+    FadeoutOption::CornerCurtain,
+    FadeoutOption::SideCurtain,
+    FadeoutOption::Dropout,
+];
 
 pub fn random_fadeout() -> PixelModifier {
     let selected_option = &ALL_FADEOUT_OPTIONS[rand::random_range(0..ALL_FADEOUT_OPTIONS.len())];
 
-    //let selected_option = FadeoutOption::SideCurtain;
+    //let selected_option = FadeoutOption::Dropout;
 
     match selected_option {
         FadeoutOption::CornerCurtain => PixelModifier::Curtain(CurtainModifier::new(
@@ -62,9 +61,8 @@ pub fn random_fadeout() -> PixelModifier {
                 (LAST_LED, BACK_MIDDLE),
             ],
         )),
-        FadeoutOption::Dropout => PixelModifier::Dropout(DropoutModifier::new(
-            Instant::now(),
-            Duration::from_secs(7)
-        ))
+        FadeoutOption::Dropout => {
+            PixelModifier::Dropout(DropoutModifier::new(Instant::now(), Duration::from_secs(7)))
+        }
     }
 }
