@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use fadeout::curtain::CurtainModifier;
+use fadeout::{curtain::CurtainModifier, dropout::DropoutModifier};
 
 use super::pixelstrip::PixelStrip;
 
@@ -17,6 +17,7 @@ pub const TWO_PI: f64 = std::f64::consts::PI * 2.0;
 pub enum PixelModifier {
     RainbowOscillation(RainbowOscillationModifier),
     Curtain(CurtainModifier),
+    Dropout(DropoutModifier)
 }
 
 pub struct ModifierParameters {
@@ -36,10 +37,9 @@ pub trait ModifierChainable {
 impl ModifierChainable for PixelModifier {
     fn run(&mut self, pixel_strip: &mut PixelStrip, params: &ModifierParameters) -> ModifierResult {
         match self {
-            PixelModifier::RainbowOscillation(rainbow_oscillation_modifier) => {
-                rainbow_oscillation_modifier.run(pixel_strip, params)
-            }
-            PixelModifier::Curtain(curtain_modifier) => curtain_modifier.run(pixel_strip, params),
+            PixelModifier::RainbowOscillation(modifier) => {modifier.run(pixel_strip, params)}
+            PixelModifier::Curtain(modifier) => modifier.run(pixel_strip, params),
+            PixelModifier::Dropout(modifier) => modifier.run(pixel_strip, params),
         }
     }
 }

@@ -1,6 +1,7 @@
 use std::time::{Duration, Instant};
 
 use curtain::CurtainModifier;
+use dropout::DropoutModifier;
 
 use crate::{
     BACK_LEFT_CORNER, BACK_MIDDLE, FRONT_LEFT_CORNER, FRONT_MIDDLE, FRONT_RIGHT_CORNER, LAST_LED,
@@ -10,14 +11,20 @@ use crate::{
 use super::PixelModifier;
 
 pub mod curtain;
+pub mod dropout;
 
 enum FadeoutOption {
     CornerCurtain,
     SideCurtain,
+    Dropout
 }
 
-const ALL_FADEOUT_OPTIONS: [FadeoutOption; 2] =
-    [FadeoutOption::CornerCurtain, FadeoutOption::SideCurtain];
+const ALL_FADEOUT_OPTIONS: [FadeoutOption; 3] =
+    [
+        FadeoutOption::CornerCurtain, 
+        FadeoutOption::SideCurtain,
+        FadeoutOption::Dropout
+    ];
 
 pub fn random_fadeout() -> PixelModifier {
     let selected_option = &ALL_FADEOUT_OPTIONS[rand::random_range(0..ALL_FADEOUT_OPTIONS.len())];
@@ -55,5 +62,9 @@ pub fn random_fadeout() -> PixelModifier {
                 (LAST_LED, BACK_MIDDLE),
             ],
         )),
+        FadeoutOption::Dropout => PixelModifier::Dropout(DropoutModifier::new(
+            Instant::now(),
+            Duration::from_secs(7)
+        ))
     }
 }
