@@ -35,7 +35,7 @@ in
 {
   systemd.services.custom-ddp-controller = {
     wantedBy = ["multi-user.target"];
-    after = ["network.target"];
+    wants = [ "network-online.target" ]; #For health checkin
     script = "${package}/bin/${core_manifest.name} ${target_ip} ${target_port} ${bind_port}";
     path = path;
     serviceConfig = {
